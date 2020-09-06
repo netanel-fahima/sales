@@ -25,21 +25,22 @@ class DBDao {
     }
 
 
-      exec(query, callback) {
-        var con = this.getPool();
-        return   con.query(query, (error, results, fields) => {
+    exec(query, callback) {
+        console.log(query);
+        const con = this.getPool();
+        return con.query(query, (error, results, fields) => {
             if (error) {
-                return console.error(error.message);
+                console.error(error.message);
+                throw  error;
             }
             callback(results);
-
             con.end();
         });
     }
 
-    async es(){
+    async es() {
         var con = this.getPool();
-        return  con.query ;
+        return con.query;
     }
 
     execSync(query) {
@@ -58,25 +59,28 @@ class DBDao {
     }
 
     list(call, where) {
-        this.exec(`SELECT * FROM ` + this.name() + (!!where ? (` WHERE ` + this.extracted(where)) : ""), call);
+        return this.exec(`SELECT *
+                          FROM ${this.name() + (!!where ? (` WHERE ` + this.extracted(where)) : ``)}`, call);
     }
 
 
-    delete(id, call) {
-        this.exec(`DELETE
-                   FROM ` + this.name() + ` WHERE ` + this.extracted(id), call);
+    delete(where, call) {
+        return this.exec(`DELETE
+                   FROM ${this.name()} WHERE ${this.extracted(where)} `, call);
     }
 
-    insert(id, call) {
-        this.exec(`INSERT INTO ` + this.name() + this.extractedInsert(id), call);
+    insert(where, call) {
+        let q = `INSERT INTO ${this.name()} ${this.extractedInsert(where)}`;
+        return this.exec(q, call);
     }
 
-     update(set, where, call) {
-        this.exec(`UPDATE ` + this.name() + ` SET ` + this.extractedUpdate(set) + ` WHERE ` + this.extracted(where), call);
+    update(set, where, call) {
+        return this.exec(`UPDATE ${this.name()} SET ${this.extractedUpdate(set)} WHERE ${this.extracted(where)}`, call);
     }
 
-    read(id, call) {
-        this.exec(`SELECT * FROM ` + this.name() + ` WHERE ` + this.extracted(id), call);
+    read(where, call) {
+        return this.exec(`SELECT *
+                   FROM ${this.name()} WHERE ${this.extracted(where)}`, call);
     }
 
     execute(exec, call) {

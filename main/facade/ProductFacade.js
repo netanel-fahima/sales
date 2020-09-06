@@ -1,5 +1,6 @@
-const {dao} = require("../dao/DBDao")
-const {Facade} = require("./Facade")
+const ansyc = require("../utils/Ansyc");
+const dao = require("../dao/DBDao").DBDao;
+const {Facade} = require("./Facade");
 
 class ProductFacade extends Facade {
 
@@ -9,26 +10,35 @@ class ProductFacade extends Facade {
     productReviewDao = new dao("product_review");
     productMetaDao = new dao("product_meta");
 
-
     getDao() {
         return this.productDao;
     }
 
-    list(where, call) {
+    list(call, where,) {
+
+        let counter = new ansyc(2, call );
+
         let self = this;
         super.list(where, function (products) {
             //add reviews
             products.forEach(function (product, i) {
+
                 self.productReviewDao.list(function (reviews) {
                     product.reviews = reviews;
+                    if (i === products.length - 1)
+                        counter.event(products);
                 }, {productId: product.id});
                 //add meta
                 self.productMetaDao.list(function (metas) {
                     product.metas = metas;
+                    if (i === products.length - 1)
+                        counter.event(products);
                 }, {productId: product.id});
-            });
 
-            call(products)
+            });
+            if (products.length === 0)
+                counter.end(products);
+
         });
     }
 
@@ -40,6 +50,8 @@ class ProductFacade extends Facade {
         this.productReviewDao.insert(where, call);
     }
 
+
+    //Category
     addCategory(where, call) {
         this.categoryDao.insert(where, call);
     }
@@ -55,16 +67,16 @@ class ProductFacade extends Facade {
     }
 
     productsByCategory(id, call) {
-        let Super = super;
+        let self = this;
         this.productCategoryDao.list(function (pcs) {
             /*create products ids by category*/
             let ids = "";
             pcs.forEach(function (i, pc) {
-                if (i > 0) ids += ","
+                if (i > 0) ids += ",";
                 ids += pc.productId
             });
             /*set all products by id - in callback */
-            Super.read({id: "in (" + ids + ")"}, function (products) {
+            self.read({id: "in (" + ids + ")"}, function (products) {
                 call(products);
             });
 
@@ -72,3 +84,5 @@ class ProductFacade extends Facade {
     }
 
 }
+
+module.exports = ProductFacade;

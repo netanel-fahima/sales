@@ -1,18 +1,24 @@
-var s = require("../login/login.js")
-var dao = require("../dao/UserDao")
-var http = require("http");
-http.createServer(function (request, response) {
-    // Send the HTTP header
-    // HTTP Status: 200 : OK
-    // Content Type: text/plain
-    response.writeHead(200, {'Content-Type': ''});
-    // Send the response body as "Hello World"
-    new dao().read({firstName:"david"} , function (e) {
-        response.end(JSON.stringify(e));
-    });
+const http = require('http')
+    , https = require('https')
+    , express = require('express')
+    , app = express();
 
 
-}).listen(8083);
+class server {
+    static getApp() {
+        return app;
+    }
+}
 
-// Console will print the message
-console.log('Server running at http://127.0.0.1:8083');
+let s = app.listen(8081, "localhost", function () {
+    const host = s.address().address;
+    const port = s.address().port;
+    console.log(`Example app listening at http://${host}:${port}`)
+});
+
+app.get('/', function (req, res) {
+    res.end("Nodejs Server Load ")
+});
+
+
+module.exports = server;

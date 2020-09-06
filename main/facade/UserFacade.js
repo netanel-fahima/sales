@@ -1,11 +1,16 @@
-const {dao} = require("../dao/UserDao")
-const {Facade} = require("./Facade")
+const {Facade} = require("./Facade");
+let dao = require("../dao/UserDao");
 
 class UserFacade extends Facade{
-    userDao = new dao();
+
+    constructor() {
+        super();
+    }
 
     getDao(){
-        return this.userDao;
+
+        return new dao();
     }
 
 }
+module.exports = UserFacade;
