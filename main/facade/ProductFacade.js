@@ -14,13 +14,13 @@ class ProductFacade extends Facade {
         return this.productDao;
     }
 
-    list(call, where,) {
+    list(where, call) {
 
-        let counter = new ansyc(2, call );
+        let counter = new ansyc(2, call);
 
         let self = this;
-        super.list(where, function (products) {
-            //add reviews
+        //add reviews
+        this.getDao().list(function (products) {
             products.forEach(function (product, i) {
 
                 self.productReviewDao.list(function (reviews) {
@@ -56,13 +56,21 @@ class ProductFacade extends Facade {
         this.categoryDao.insert(where, call);
     }
 
+    addToCategory(where, call) {
+        this.productCategoryDao.insert(where, call);
+    }
+
     categories(where, call) {
         let self = this;
-        this.categoryDao.list(function (categor) {
-            self.categoryDao.list(function (sub) {
-                categor.categories = sub;
-                call(categor)
-            }, {parentId: categor.id});
+        this.categoryDao.list(function (categories) {
+            categories.forEach(function (cat, i) {
+                self.categoryDao.list(function (sub) {
+                    cat.categories = sub;
+                    if (i === categories.length - 1)
+                        call(categories)
+                }, {parentId: cat.id});
+            })
+
         }, where);
     }
 
@@ -71,12 +79,13 @@ class ProductFacade extends Facade {
         this.productCategoryDao.list(function (pcs) {
             /*create products ids by category*/
             let ids = "";
-            pcs.forEach(function (i, pc) {
+
+            for (let i in pcs ){
                 if (i > 0) ids += ",";
-                ids += pc.productId
-            });
+                ids += pcs[i].productId
+            }
             /*set all products by id - in callback */
-            self.read({id: "in (" + ids + ")"}, function (products) {
+            self.productDao.exec(`SELECT * FROM product WHERE id in (${ids})`, function (products) {
                 call(products);
             });
 

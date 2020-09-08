@@ -30,7 +30,6 @@ class DBDao {
         const con = this.getPool();
         return con.query(query, (error, results, fields) => {
             if (error) {
-                console.error(error.message);
                 throw  error;
             }
             callback(results);
@@ -59,14 +58,12 @@ class DBDao {
     }
 
     list(call, where) {
-        return this.exec(`SELECT *
-                          FROM ${this.name() + (!!where ? (` WHERE ` + this.extracted(where)) : ``)}`, call);
+        return this.exec(`SELECT * FROM ${this.name() + (!!where ? (` WHERE ` + this.extracted(where)) : ``)}`, call);
     }
 
 
     delete(where, call) {
-        return this.exec(`DELETE
-                   FROM ${this.name()} WHERE ${this.extracted(where)} `, call);
+        return this.exec(`DELETE FROM ${this.name()} WHERE ${this.extracted(where)} `, call);
     }
 
     insert(where, call) {
@@ -79,8 +76,7 @@ class DBDao {
     }
 
     read(where, call) {
-        return this.exec(`SELECT *
-                   FROM ${this.name()} WHERE ${this.extracted(where)}`, call);
+        return this.exec(`SELECT * FROM ${this.name()} WHERE ${this.extracted(where)}`, call);
     }
 
     execute(exec, call) {
@@ -114,7 +110,7 @@ class DBDao {
             Object.keys(id).forEach(function (k, i) {
                 if (i > 0)
                     where += " and ";
-                where += k + "=" + (typeof id[k] == "number" ? id[k] : "'" + id[k] + "'");
+                where += k + "=" + (typeof id[k] == "string" ?  "'" + id[k] + "'" : id[k]);
             });
         }
         return where;

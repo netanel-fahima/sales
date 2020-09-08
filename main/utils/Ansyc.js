@@ -13,7 +13,7 @@ class Ansyc {
 
     event(arg = this.args) {
         if (--this.count == 0) {
-            this.callback(this.args);
+            this.callback(arg);
         }
         console.log(`counter is - ${this.count}`);
     }

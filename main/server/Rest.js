@@ -6,8 +6,58 @@ const facade = require("../facade/UserFacade"),
 const bodyParser = require('body-parser');
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 
+server.getApp().get('/category/list', urlencodedParser, function (req, res) {
+    factory("product").categories(null, function (e) {
+        res.json(e);
+    });
+});
+
+server.getApp().get('/category/:id/products', urlencodedParser, function (req, res) {
+    factory("product").productsByCategory(req.params.id, function (e) {
+        res.json(e);
+    });
+});
+
+server.getApp().post('/category/insert', urlencodedParser, function (req, res) {
+    factory("product").addCategory(JSON.parse(req.headers.body), function (e) {
+        res.json(e);
+    });
+});
+
+server.getApp().post('/product_category/insert', urlencodedParser, function (req, res) {
+    factory("product").addToCategory(JSON.parse(req.headers.body), function (e) {
+        res.json(e);
+    });
+});
+
+server.getApp().post('/product_meta/insert', urlencodedParser, function (req, res) {
+    factory("product").addMeta(JSON.parse(req.headers.body), function (e) {
+        res.json(e);
+    });
+});
+
+
+server.getApp().post('/product_review/insert', urlencodedParser, function (req, res) {
+    factory("product").addReview(JSON.parse(req.headers.body), function (e) {
+        res.json(e);
+    });
+});
+
+server.getApp().post('/transaction/insert', urlencodedParser, function (req, res) {
+    factory("product").addTransaction(JSON.parse(req.headers.body), function (e) {
+        res.json(e);
+    });
+});
+
+
 server.getApp().get('/:name/list', function (req, res) {
     factory(req.params.name).list(null, function (e) {
+        res.json(e);
+    });
+});
+
+server.getApp().get('/:name/read/:id', function (req, res) {
+    factory(req.params.name).read({"id": req.params.id}, function (e) {
         res.json(e);
     });
 });
