@@ -20,7 +20,8 @@ class DBDao {
             host: "localhost",//'remotemysql.com',
             user: 'root',
             password: 'natishu12',
-            database: 'store'
+            database: 'store',
+            dateStrings: true
         });
     }
 
@@ -30,9 +31,12 @@ class DBDao {
         const con = this.getPool();
         return con.query(query, (error, results, fields) => {
             if (error) {
-                throw  error;
+                /*throw new Error(error) ;*/
+                callback(error);
+                console.error(error)
             }
             callback(results);
+            console.error(results)
             con.end();
         });
     }
@@ -72,7 +76,7 @@ class DBDao {
     }
 
     update(set, where, call) {
-        return this.exec(`UPDATE ${this.name()} SET ${this.extractedUpdate(set)} WHERE ${this.extracted(where)}`, call);
+        return this.exec(`UPDATE ${this.name()} SET ${this.getPool().escape(set)} WHERE ${this.extracted(where)}`, call);
     }
 
     read(where, call) {
@@ -84,20 +88,25 @@ class DBDao {
     }
 
 
-    extractedInsert(id) {
+    extractedInsert(body) {
         let values = "";
         let names = "";
-        if (typeof id == "object") {
-            Object.keys(id).forEach(function (k, i) {
-                if (i > 0) {
-                    names = names + " , ";
-                    values = values + " , ";
-                }
-                names = names + k;
-                values = values + (id[k] == null ? null : (typeof id[k] == "string" ? "'" + id[k] + "'" : id[k]));
 
-            });
+        for (let i in body) {
+            let id = body[i]
+            if (typeof id == "object") {
+                Object.keys(id).forEach(function (k, i) {
+                    if (i > 0) {
+                        names = names + " , ";
+                        values = values + " , ";
+                    }
+                    names = names + k;
+                    values = values + (id[k] == null ? null : (typeof id[k] == "string" ? "'" + id[k] + "'" : id[k]));
+
+                });
+            }
         }
+
         return " (" + names + ") values (" + values + ")";
     }
 
@@ -110,7 +119,7 @@ class DBDao {
             Object.keys(id).forEach(function (k, i) {
                 if (i > 0)
                     where += " and ";
-                where += k + "=" + (typeof id[k] == "string" ?  "'" + id[k] + "'" : id[k]);
+                where += k + "=" + (typeof id[k] == "string" ? "'" + id[k] + "'" : id[k]);
             });
         }
         return where;

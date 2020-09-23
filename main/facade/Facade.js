@@ -1,12 +1,14 @@
-const {dao} = require("../dao/DBDao")
+let dao = require("../dao/DBDao").DBDao;
 
 class Facade {
 
+    name = "" ;
     constructor() {
+        this.name = arguments[0];
     }
 
     getDao() {
-        return new dao(arguments[0])
+        return new dao(this.name)
     }
 
     list(where, call) {

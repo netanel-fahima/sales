@@ -14,7 +14,7 @@ class ProductFacade extends Facade {
         return this.productDao;
     }
 
-    list(where, call) {
+    fullList(where, call) {
 
         let counter = new ansyc(2, call);
 
