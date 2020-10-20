@@ -13,6 +13,8 @@ class Ansyc {
 
     event(arg = this.args) {
         if (--this.count == 0) {
+            console.log("send")
+            console.log(arg);
             this.callback(arg);
         }
         console.log(`counter is - ${this.count}`);

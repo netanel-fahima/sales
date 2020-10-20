@@ -4,6 +4,8 @@ asyncs = require('async');
 class DBDao {
 
     table;
+    escape;
+
 
     name() {
         return this.table;
@@ -13,6 +15,7 @@ class DBDao {
 
     constructor(name) {
         this.table = name;
+        this.escape = this.getPool()
     }
 
     getPool() {
@@ -62,25 +65,40 @@ class DBDao {
     }
 
     list(call, where) {
-        return this.exec(`SELECT * FROM ${this.name() + (!!where ? (` WHERE ` + this.extracted(where)) : ``)}`, call);
+
+        if (Array.isArray(where) && where.length > 0) {
+            where = where.map(function (value) {
+                if (value.constructor === Object && Object.keys(value).length > 2) {
+                    return `${mysql.escapeId(value.key)} ${value.op} ${value.isNull ? null : mysql.escape(value.value)}`;
+                }
+                return mysql.escape(value);
+            }).join(' and ');
+        } else if (where != null && where.constructor === Object && Object.keys(where).length > 0) {
+            where = mysql.escape(where).replace(",","and");
+        } else {
+            where = null;
+        }
+
+
+        return this.exec(`SELECT * FROM ${"`" + this.name()+ "`"} ${(!!where ? (` WHERE ` + where) : ``)}`, call);
     }
 
 
     delete(where, call) {
-        return this.exec(`DELETE FROM ${this.name()} WHERE ${this.extracted(where)} `, call);
+        return this.exec(`DELETE FROM ${"`"+ this.name()+"`"} WHERE ${this.extracted(where)} `, call);
     }
 
-    insert(where, call) {
-        let q = `INSERT INTO ${this.name()} ${this.extractedInsert(where)}`;
+    insert(set, call) {
+        let q = `INSERT INTO ${"`"+ this.name()+"`"} set  ${this.escape.escape(set)}`;
         return this.exec(q, call);
     }
 
     update(set, where, call) {
-        return this.exec(`UPDATE ${this.name()} SET ${this.getPool().escape(set)} WHERE ${this.extracted(where)}`, call);
+        return this.exec(`UPDATE ${"`"+ this.name()+"`"} SET ${this.escape.escape(set)} WHERE ${this.extracted(where)}`, call);
     }
 
     read(where, call) {
-        return this.exec(`SELECT * FROM ${this.name()} WHERE ${this.extracted(where)}`, call);
+        return this.exec(`SELECT * FROM ${"`"+ this.name()+"`"} WHERE ${this.extracted(where)}`, call);
     }
 
     execute(exec, call) {

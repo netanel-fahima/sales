@@ -7,6 +7,7 @@ class ProductFacade extends Facade {
     categoryDao = new dao("category");
     productDao = new dao("product");
     productCategoryDao = new dao("product_category");
+    productProductDao = new dao("product_product");
     productReviewDao = new dao("product_review");
     productMetaDao = new dao("product_meta");
 
@@ -14,9 +15,17 @@ class ProductFacade extends Facade {
         return this.productDao;
     }
 
+
+    list(where, call) {
+        if (!!where&&!!where.parentId)
+            this.productsByProduct(where.parentId, call);
+        else
+            super.list(where, call);
+    }
+
     fullList(where, call) {
 
-        let counter = new ansyc(2, call);
+        let counter = new ansyc(3, call);
 
         let self = this;
         //add reviews
@@ -31,6 +40,12 @@ class ProductFacade extends Facade {
                 //add meta
                 self.productMetaDao.list(function (metas) {
                     product.metas = metas;
+                    if (i === products.length - 1)
+                        counter.event(products);
+                }, {productId: product.id});
+
+                self.productCategoryDao.list(function (category) {
+                    product.categories = category;
                     if (i === products.length - 1)
                         counter.event(products);
                 }, {productId: product.id});
@@ -60,6 +75,14 @@ class ProductFacade extends Facade {
         this.productCategoryDao.insert(where, call);
     }
 
+    productsCategory(where, call) {
+        this.productCategoryDao.list(call, where);
+    }
+
+    updateProductsCategory(set, where, call) {
+        this.productCategoryDao.update(set, where, call);
+    }
+
     categories(where, call) {
         let self = this;
         this.categoryDao.list(function (categories) {
@@ -80,7 +103,7 @@ class ProductFacade extends Facade {
             /*create products ids by category*/
             let ids = "";
 
-            for (let i in pcs ){
+            for (let i in pcs) {
                 if (i > 0) ids += ",";
                 ids += pcs[i].productId
             }
@@ -90,6 +113,24 @@ class ProductFacade extends Facade {
             });
 
         }, {categoryId: id});
+    }
+
+    productsByProduct(id, call) {
+        let self = this;
+        this.productProductDao.list(function (pcs) {
+            /*create products ids by category*/
+            let ids = "";
+
+            for (let i in pcs) {
+                if (i > 0) ids += ",";
+                ids += pcs[i].productId
+            }
+            /*set all products by id - in callback */
+            self.productDao.exec(`SELECT * FROM product WHERE id in (${ids})`, function (products) {
+                call(products);
+            });
+
+        }, {parentProductId: id});
     }
 
 }
