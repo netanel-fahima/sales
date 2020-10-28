@@ -36,7 +36,8 @@ class DBDao {
             if (error) {
                 /*throw new Error(error) ;*/
                 callback(error);
-                console.error(error)
+                console.error(error);
+                return;
             }
             callback(results);
             console.error(results)

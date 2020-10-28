@@ -7,7 +7,7 @@ class ProductFacade extends Facade {
     categoryDao = new dao("category");
     productDao = new dao("product");
     productCategoryDao = new dao("product_category");
-    productProductDao = new dao("product_product");
+    productProductDao = new dao("product_option");
     productReviewDao = new dao("product_review");
     productMetaDao = new dao("product_meta");
 
@@ -17,15 +17,12 @@ class ProductFacade extends Facade {
 
 
     list(where, call) {
-        if (!!where&&!!where.parentId)
-            this.productsByProduct(where.parentId, call);
-        else
-            super.list(where, call);
+        super.list(where, call);
     }
 
     fullList(where, call) {
 
-        let counter = new ansyc(3, call);
+        let counter = new ansyc(4, call);
 
         let self = this;
         //add reviews
@@ -50,11 +47,17 @@ class ProductFacade extends Facade {
                         counter.event(products);
                 }, {productId: product.id});
 
+                self.productProductDao.list(function (options) {
+                    product.options = options;
+                    if (i === products.length - 1)
+                        counter.event(products);
+                }, {productId: product.id});
+
             });
             if (products.length === 0)
                 counter.end(products);
 
-        });
+        },where);
     }
 
     addMeta(where, call) {
@@ -116,21 +119,9 @@ class ProductFacade extends Facade {
     }
 
     productsByProduct(id, call) {
-        let self = this;
-        this.productProductDao.list(function (pcs) {
-            /*create products ids by category*/
-            let ids = "";
-
-            for (let i in pcs) {
-                if (i > 0) ids += ",";
-                ids += pcs[i].productId
-            }
-            /*set all products by id - in callback */
-            self.productDao.exec(`SELECT * FROM product WHERE id in (${ids})`, function (products) {
-                call(products);
-            });
-
-        }, {parentProductId: id});
+        this.productProductDao.list(function (options) {
+            call(options);
+        }, {parent_Id: id});
     }
 
 }

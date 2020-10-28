@@ -1,16 +1,18 @@
 server = require("./server");
 
+
 const facade = require("../facade/UserFacade"),
     factory = require("../facade/Factory").factory;
 
 const bodyParser = require('body-parser');
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 
-/*server.getApp().post('/product/list', urlencodedParser, function (req, res) {
-    factory("product").fullList(null, function (e) {
+server.getApp().post('/product/details', urlencodedParser, function (req, res) {
+    factory("product").fullList(req.body, function (e) {
         send(res, e);
     });
-});*/
+});
+
 
 server.getApp().post('/product/insert', urlencodedParser, function (req, res) {
 
@@ -126,7 +128,7 @@ server.getApp().post('/:name/insert', urlencodedParser, function (req, res) {
 
 
 server.getApp().post('/:name/update', urlencodedParser, function (req, res) {
-    let data = req.body
+    let data = req.body;
     factory(req.params.name).update(data, {id: data.id}, function (e) {
         send(res, e);
     });
@@ -139,13 +141,28 @@ server.getApp().get('/:name/delete/:id', function (req, res) {
     });
 });
 
-
 server.getApp().post('/:name/delete', urlencodedParser, function (req, res) {
-    let data = JSON.parse(req.headers.body)
+    let data = JSON.parse(req.headers.body);
     factory(req.params.name).delete(data, function (e) {
         send(res, e);
     });
 });
+
+Login = require("../login/login").Login;
+login = new Login();
+
+server.getApp().post('/login', urlencodedParser, function (req, res) {
+    login.auto(req.body.machine , req.body.name , req.body.password, function (e) {
+        send(res, e);
+    });
+});
+
+server.getApp().post('/register', urlencodedParser, function (req, res) {
+    login.register(req.body.machine , req.body.user , function (e) {
+        send(res, e);
+    });
+});
+
 
 function send(res, e) {
     try {
@@ -156,11 +173,17 @@ function send(res, e) {
 }
 
 server.getApp().use((error, req, res, next) => {
-    console.log(error);
+    console.error(error);
     res.status(error.status || 500).send({
         error: {
             status: error.status || 500,
             message: error.message || 'Internal Server Error',
         },
     });
+});
+
+let  s= server.getApp().listen(process.env.PORT,  function (req, res) {
+    const host = s.address().address;
+    const port = s.address().port;
+    console.log(`Example app listening at http://${host}:${port}`)
 });

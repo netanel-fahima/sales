@@ -18,7 +18,6 @@ class Login {
                 res(users)
             })
         });
-
         return await promise;
     }
 
@@ -29,14 +28,12 @@ class Login {
     auto(machine, name, pass, call) {
         let self = this;
         this.getUsers().then(users => {
-
             try {
-
 
                 let date = mysql.format("?", [new Date()], true, "UTC")
                     .replace("'", "").replace("'", "");
 
-                this.userFacade.read({firstName: name, passwordHash: pass}, function (autoUser) {
+                this.userFacade.read({email: name/*, passwordHash: pass*/}, function (autoUser) {
                     if (autoUser.length === 0) {
                         call("FAILED");
                     } else {
@@ -50,15 +47,14 @@ class Login {
                                 "id": autoUser[0].id
                             }
                             , function (e) {
-
                                 users.forEach((user, key) => {
                                     if (user.intro === machine.name && user.profile === "GEST") {
                                         self.userFacade.delete({id: user.id}, function (d) {
-                                            console.log(d)
+                                            console.log(autoUser[0].firstName)
                                         })
                                     }
                                 });
-
+                                call(autoUser[0]);
                             })
                     }
 
@@ -86,7 +82,7 @@ class Login {
                             "intro": machine.name,
                         }, {"id": user.id,}
                         , function (res) {
-                            call(res);
+                            call(user);
                         });
                     return true;
                 }
@@ -131,6 +127,81 @@ class Login {
 
     getUser(id) {
         return this.users.get(id);
+    }
+
+    register(machine, user, call) {
+        let self = this;
+        let date = mysql.format("?", [new Date()], true, "UTC")
+            .replace("'", "").replace("'", "");
+
+        this.getUsers().then(users => {
+            try {
+
+                let date = mysql.format("?", [new Date()], true, "UTC")
+                    .replace("'", "").replace("'", "");
+
+                this.userFacade.read({email: user.email}, function (autoUser) {
+                    if (!!autoUser.errno){
+                        call("FAILED");
+                        return;
+                    }
+
+
+                    if (autoUser.length === 0) {
+
+                        self.userFacade.insert(
+                            {
+                                firstName: user.name,
+                                email: user.email,
+                                passwordHash: "1234",
+                                "lastLogin": date,
+                                "intro": machine.name,
+                                "profile": "USER",
+                                "registeredAt": date
+                            }
+                            , function (e) {
+                                users.forEach((u, key) => {
+                                    if (u.intro === machine.name && u.profile === "GEST") {
+                                        self.userFacade.delete({id: u.id}, function (d) {
+                                            console.log(autoUser[0].firstName)
+                                        })
+                                    }
+                                });
+                                call(user);
+                            })
+
+                    } else {
+                        //get from DB
+                        self.userFacade.update(
+                            {
+                                "lastLogin": date,
+                                "intro": machine.name,
+                                "profile": "USER",
+                            }, {
+                                "id": autoUser[0].id
+                            }
+                            , function (e) {
+                                users.forEach((user, key) => {
+                                    if (user.intro === machine.name && user.profile === "GEST") {
+                                        self.userFacade.delete({id: user.id}, function (d) {
+                                            console.log(autoUser[0].firstName)
+                                        })
+                                    }
+                                });
+
+                                call(user);
+
+                            })
+
+                    }
+
+                });
+
+            } catch (e) {
+                call("FAILED");
+                console.error(name + " " + pass + " Fail to connect")
+            }
+        });
     }
 
 }
