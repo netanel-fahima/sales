@@ -41,11 +41,11 @@ class ProductFacade extends Facade {
                         counter.event(products);
                 }, {productId: product.id});
 
-                self.productCategoryDao.list(function (category) {
-                    product.categories = category;
+                self.categoryByproducts(product.id, function (categories) {
+                    product.categories = categories;
                     if (i === products.length - 1)
                         counter.event(products);
-                }, {productId: product.id});
+                });
 
                 self.productProductDao.list(function (options) {
                     product.options = options;
@@ -57,7 +57,7 @@ class ProductFacade extends Facade {
             if (products.length === 0)
                 counter.end(products);
 
-        },where);
+        }, where);
     }
 
     addMeta(where, call) {
@@ -98,6 +98,24 @@ class ProductFacade extends Facade {
             })
 
         }, where);
+    }
+
+
+    categoryByproducts(id, call) {
+        let self = this;
+        this.productCategoryDao.list(function (pcs) {
+            /*create products ids by category*/
+            let ids = "";
+            for (let i in pcs) {
+                if (i > 0) ids += ",";
+                ids += pcs[i].categoryId
+            }
+            /*set all products by id - in callback */
+            self.categoryDao.exec(`SELECT * FROM category WHERE id in (${ids})`, function (category) {
+                call(category);
+            });
+
+        }, {productId: id});
     }
 
     productsByCategory(id, call) {

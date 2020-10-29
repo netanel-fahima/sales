@@ -1,11 +1,11 @@
 server = require("./server");
 
-
 const facade = require("../facade/UserFacade"),
     factory = require("../facade/Factory").factory;
 
 const bodyParser = require('body-parser');
 const urlencodedParser = bodyParser.urlencoded({extended: false});
+
 
 server.getApp().post('/product/details', urlencodedParser, function (req, res) {
     factory("product").fullList(req.body, function (e) {
@@ -182,7 +182,7 @@ server.getApp().use((error, req, res, next) => {
     });
 });
 
-let  s= server.getApp().listen(process.env.PORT,  function (req, res) {
+let  s= server.getApp().listen(8081,  function (req, res) {
     const host = s.address().address;
     const port = s.address().port;
     console.log(`Example app listening at http://${host}:${port}`)

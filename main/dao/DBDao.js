@@ -21,9 +21,9 @@ class DBDao {
     getPool() {
         return mysql.createConnection({
             host: "localhost",//'remotemysql.com',
-            user: 'root',
-            password: 'natishu12',
-            database: 'store',
+            user: '185T9Xo31f',
+            password: '9ibB4ubUNK',
+            database: '185T9Xo31f',
             dateStrings: true
         });
     }
