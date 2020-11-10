@@ -26,6 +26,8 @@ class Factory {
                 return new Facade("resource");
             case "product_category" :
                 return new Facade("product_category");
+            case "product_option" :
+                return new Facade("product_option");
             default :
                 throw new Error("wrong facade name")
 

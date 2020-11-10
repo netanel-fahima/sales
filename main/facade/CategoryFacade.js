@@ -18,16 +18,18 @@ class CategoryFacade extends Facade {
     list(where, call) {
         let _slf = this;
         let counter = new ansyc(1, call);
-        this.dao.list( function (categories) {
-            categories.forEach(function (c, i) {
-                _slf.resource.list(function (imgs) {
-                    c.images = imgs;
-                    if (i === categories.length - 1)
-                        counter.event(categories)
-                }, {type: "category", type_id: c.id})
+        this.dao.list(function (categories) {
+            if (Array.isArray(categories))
+                categories.forEach(function (c, i) {
+                    _slf.resource.list(function (imgs) {
+                        c.images = imgs;
+                        if (i === categories.length - 1)
+                            counter.event(categories)
+                    }, {type: "category", type_id: c.id})
 
-            })
-        },where);
+                });
+            counter.event(categories)
+        }, where);
     }
 }
 
